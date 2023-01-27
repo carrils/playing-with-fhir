@@ -1,5 +1,6 @@
 package org.mitre.phfic;
 
+// HAPI FHIR API
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
@@ -7,6 +8,8 @@ import ca.uhn.fhir.rest.client.api.IRestfulClientFactory;
 import ca.uhn.fhir.rest.client.api.ServerValidationModeEnum;
 import ca.uhn.fhir.rest.client.interceptor.LoggingInterceptor;
 import ca.uhn.fhir.util.BundleBuilder;
+
+// Base HL7 FHIR
 import ca.uhn.fhir.util.BundleUtil;
 import org.hl7.fhir.instance.model.api.IBase;
 import org.hl7.fhir.instance.model.api.IBaseBundle;
@@ -16,8 +19,8 @@ import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointUse;
 import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Patient;
-import org.json.simple.JSONObject;
 
+// Java API stuff
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -28,49 +31,17 @@ import java.util.List;
 import java.util.UUID;
 
 public class Main {
-
     public static void main(String[] args) throws IOException {
         FhirContext contextR4 = FhirContext.forR4();
 
-        // [ --- Bundle Builder --- ]
-        BundleBuilder builder = new BundleBuilder(contextR4);
-        //set bundle type and give it an id so that you can reference it here in the source code
-        builder.setBundleField("type","collection")
-                .setBundleField("id", UUID.randomUUID().toString())
-                .setMetaField("lastUpdated", builder.newPrimitive("instant", new Date()));
-
-        // Create Bundle entry
-        IBase entry = builder.addEntry();
-
-        // Create a Patient to create as part of the bundle
-        Patient pt = new Patient();
-        pt.setActive(true);
-        pt.addIdentifier().setSystem("http://localhost:8080/reference-server/r4").setValue("128"); //pid == 128
-        builder.addToEntry(entry, "resource", pt);
-
-        //Initiate a new JSON Parser
-        IParser parser = contextR4.newJsonParser();
-        parser.setPrettyPrint(true);
-        IBaseBundle outcome = builder.getBundle();
-
-        //print the bundle in json to sys.out
-        //System.out.println(parser.encodeResourceToString(outcome));
-
-        //print this to a json file
-        File file = new File("bundle-test.json");
+        // [ --- 01.27.23 --- ]
+        // 'Main.java' will now hold a hapi fhir server, to interact with our tool kit.
+        // After a server is successfully set up (making sure it runs, being able to upload bundle to its db,
+        // and is talking to inferno (200 OKs))
+        // You may spend time developing tests or switching gears and making a HAPI FHIR client (gui's cause yeee)
+        // Now you have a path for writing tests, make sure to look at shaumiks test cases (and others).
 
 
-        try {
-            PrintWriter print = new PrintWriter(file);
-            print.println(parser.encodeResourceToString(outcome));
-            print.close();
-
-            //print.write(parser.encodeResourceToString(outcome));
-            //System.out.println(parser.encodeResourceToString(outcome));
-            //System.out.println(parser.encodeResourceToString(outcome).toString());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
 
 
     }
