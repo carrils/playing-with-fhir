@@ -27,50 +27,51 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-public class Main {
+//logback output levels (asc precedence): TRACE, DEBUG, INFO, WARN, ERROR
 
-    public static void main(String[] args) throws IOException {
+public class Main {
+    public static void main(String[] args) {
+        String serverBase = "http://hapi.fhir.org/baseR4"; // the server base url for your server
         FhirContext contextR4 = FhirContext.forR4();
 
-        // [ --- Bundle Builder --- ]
-        BundleBuilder builder = new BundleBuilder(contextR4);
-        //set bundle type and give it an id so that you can reference it here in the source code
-        builder.setBundleField("type","collection")
-                .setBundleField("id", UUID.randomUUID().toString())
-                .setMetaField("lastUpdated", builder.newPrimitive("instant", new Date()));
+        // create a client factory for the above settings
+        IRestfulClientFactory clientFactory = contextR4.getRestfulClientFactory();
 
-        // Create Bundle entry
-        IBase entry = builder.addEntry();
+        // set client settings
+        clientFactory.setServerValidationMode(ServerValidationModeEnum.NEVER);
+        clientFactory.setConnectTimeout(20 * 1000);
+        clientFactory.setSocketTimeout(60 * 1000);
 
-        // Create a Patient to create as part of the bundle
-        Patient pt = new Patient();
-        pt.setActive(true);
-        pt.addIdentifier().setSystem("http://localhost:8080/reference-server/r4").setValue("128"); //pid == 128
-        builder.addToEntry(entry, "resource", pt);
+        // create logging interceptor
+        LoggingInterceptor loggingInterceptor = new LoggingInterceptor();
+        loggingInterceptor.setLogRequestSummary(true);
+        loggingInterceptor.setLogRequestBody(true);
+        loggingInterceptor.setLogRequestHeaders(true);
 
-        //Initiate a new JSON Parser
-        IParser parser = contextR4.newJsonParser();
-        parser.setPrettyPrint(true);
-        IBaseBundle outcome = builder.getBundle();
+        // create a generic client
+        IGenericClient client = contextR4.newRestfulGenericClient(serverBase);
 
-        //print the bundle in json to sys.out
-        //System.out.println(parser.encodeResourceToString(outcome));
+        // register the logging interceptor
+        client.registerInterceptor(loggingInterceptor);
 
-        //print this to a json file
-        File file = new File("bundle-test.json");
+        List<IBaseResource> patients = new ArrayList<>(); // a container for the results of the search
 
+        // Perform the search. client.search() returns a bundle hence the wierd notation...
+        Bundle smith_bundle = client.search()
+                .forResource(Patient.class)
+                .where(Patient.NAME.matches().value("smith"))
+                .returnBundle(Bundle.class)
+                .execute();
 
-        try {
-            PrintWriter print = new PrintWriter(file);
-            print.println(parser.encodeResourceToString(outcome));
-            print.close();
+        // print the results of the search
+        // System.out.println("smith_bundle: \n" + smith_bundle); // org.hl7.fhir.r4.model.Bundle@78e16155
 
-            //print.write(parser.encodeResourceToString(outcome));
-            //System.out.println(parser.encodeResourceToString(outcome));
-            //System.out.println(parser.encodeResourceToString(outcome).toString());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        // add the returned bundle to a List data structure for storage
+        patients.addAll(BundleUtil.toListOfResources(contextR4, smith_bundle));
+        // System.out.println("'patients' List: \n" + patients); // [org.hl7.fhir.r4.model.Patient@54a3ab8f, org.hl7.fhir.r4.model.Patient@1968a49c, ... ]
+
+        // Print search result count
+        System.out.println("Found " + patients.size() + " patients with last name smith");
 
 
     }
