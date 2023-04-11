@@ -1,0 +1,38 @@
+{
+  "resourceType": "Patient",
+  "extension": [ {
+    "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-race",
+    "valueString": "Asian"
+  }, {
+    "url": "http://hl7.org/fhir/us/core/StructureDefinition/us-core-ethnicity",
+    "valueString": "Not Hispanic or Latino"
+  }, {
+    "url": "http://hl7.org/fhir/us/core/STU5.0.1/StructureDefinition-us-core-genderIdentity.html",
+    "valueString": "M"
+  }, {
+    "url": "http://hl7.org/fhir/us/core/STU5.0.1/StructureDefinition-us-core-birthsex.html",
+    "valueString": "M"
+  } ],
+  "identifier": [ {
+    "system": "MEDSS",
+    "value": "45D783B1"
+  } ],
+  "name": [ {
+    "family": "Aquato",
+    "given": [ "Razputin", "E" ]
+  } ],
+  "telecom": [ {
+    "system": "phone",
+    "value": "488 715-9846",
+    "use": "home"
+  } ],
+  "gender": "male",
+  "birthDate": "1992-09-12",
+  "address": [ {
+    "use": "home",
+    "line": [ "101 main str" ],
+    "city": "Minneapolis",
+    "state": "MN",
+    "postalCode": "55403"
+  } ]
+}
