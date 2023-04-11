@@ -1,5 +1,6 @@
 package org.mitre.phfic;
 
+// HAPI FHIR API
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.DataFormatException;
 import ca.uhn.fhir.parser.IParser;
@@ -9,6 +10,8 @@ import ca.uhn.fhir.rest.client.api.IRestfulClientFactory;
 import ca.uhn.fhir.rest.client.api.ServerValidationModeEnum;
 import ca.uhn.fhir.rest.client.interceptor.LoggingInterceptor;
 import ca.uhn.fhir.util.BundleBuilder;
+
+// Base HL7 FHIR
 import ca.uhn.fhir.util.BundleUtil;
 import org.hl7.fhir.instance.model.api.IBase;
 import org.hl7.fhir.instance.model.api.IBaseBundle;
@@ -16,6 +19,7 @@ import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointUse;
+
 import org.json.simple.JSONObject;
 
 import java.io.*;
@@ -40,6 +44,21 @@ import java.util.*;
 
     Retrieve all with a patient?id=<whatever>$everything server interaction [ ]
  */
+
+import org.hl7.fhir.r4.model.Enumerations;
+import org.hl7.fhir.r4.model.Patient;
+
+// Java API stuff
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+
 public class Main {
     public static void main(String[] args) throws IOException {
         String serverBase = "http://hapi.fhir.org/baseR4"; // the server base url for your server
@@ -110,6 +129,7 @@ public class Main {
             IdType id = (IdType) outcome.getId();
             System.out.println("Resource is available at: " + id.getValue());
 
+
             // System.out.println("[OUTCOME]\n" + outcome.toString());
 
             // Retrieve patient from outcome
@@ -120,5 +140,71 @@ public class Main {
             System.out.println("An error occurred trying to upload:");
             e.printStackTrace();
         }
+        
+        // [UPLOAD]
+//        System.out.println("Press Enter to send the patient to server: " + serverBase);
+//        System.in.read();
+//
+//        try {
+//            // send resource up to the server - the result is stored in outcome hence the weird notation
+//            MethodOutcome outcome = client.create()
+//                    .resource(pat)
+//                    .prettyPrint()
+//                    .encodedJson()
+//                    .execute();
+//            // Retrieve id from outcome
+//            IdType id = (IdType) outcome.getId();
+//            System.out.println("Resource is available at: " + id.getValue());
+//
+//            // System.out.println("[OUTCOME]\n" + outcome.toString());
+//
+//            // Retrieve patient from outcome
+//            Patient receivedPatient = (Patient) outcome.getResource();
+//            System.out.println("This is what we sent up: \n" + jsonParser.encodeResourceToString(pat) + "\n");
+//            System.out.println("And this is what we received back: \n" + jsonParser.encodeResourceToString(receivedPatient));
+//        } catch (DataFormatException e) {
+//            System.out.println("An error occurred trying to upload:");
+//            e.printStackTrace();
+//        }
+
+        //[SEARCH]
+        //  Sam Spades identifier values:
+        //  "system": "http://www.health.state.mn.us/diseases/reportable/medss/",
+        //  "value": "45D783B1"
+        Bundle samSpade = client.search().forResource(Patient.class)
+                .where(Patient.IDENTIFIER.exactly().systemAndCode("http://www.health.state.mn.us/diseases/reportable/medss/", "45D783B1"))
+                .returnBundle(Bundle.class)
+                .execute();
+
+        try {
+            Writer outf = new FileWriter("sir-samuel-spade.json");
+            outf.write(jsonParser.encodeResourceToString(samSpade));
+            outf.close();
+        } catch (Exception e) {
+            System.out.println("Well, now look what you've done. How are we going to explain this to corporate?\n");
+            e.getStackTrace();
+        }
+        System.out.println("sir samuel spade:\n" + jsonParser.encodeResourceToString(samSpade));
+
+        // most of the functionality of capturer is delegated to the subroutines of the "getLastRequest" and "getLastResponse" methods
+        System.out.println("[Capturer output]:\n" + "\tRequest Headers: \n \t" + capturer.getLastRequest().getAllHeaders());
+        System.out.println("\n \tResponse Headers:\n \t" + capturer.getLastResponse().getAllHeaders());
+
+        //[VALIDATOR]
+        //FhirValidator validator = contextR4.newValidator();
+
+        // this object supplies the structure definitions
+        //DefaultProfileValidationSupport structures = new DefaultProfileValidationSupport(contextR4);
+
+        //ValidationSupportContext
+        //FhirInstanceValidator fiv = new FhirInstanceValidator(structures);
+        //validator.registerValidatorModule(module);
+        // get the status field from the encounter resource (that is obviously the patients)
+        //ValidationResult result = validator.validateWithResult(jsonParser.encodeResourceToString(samSpade));
+
+        // The result object now contains the validation results
+        //for (SingleValidationMessage next : result.getMessages()) {
+        //   System.out.println(next.getLocationString() + " " + next.getMessage());
+        //}
     }
 }

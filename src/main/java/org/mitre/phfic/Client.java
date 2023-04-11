@@ -13,8 +13,8 @@ import org.hl7.fhir.r4.model.Patient;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ClientAttempt {
-    public static void alsoNotMain() {
+public class Client {
+    public static void cli() {
         FhirContext contextR4 = FhirContext.forR4();
 
         // Setting misc. client settings

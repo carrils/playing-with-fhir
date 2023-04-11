@@ -6,7 +6,7 @@ import org.hl7.fhir.r4.model.ContactPoint;
 import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Patient;
 
-public class CreatingPatientsForFun {
+public class CreatingPatients {
     public static void notmain(String[] args) {
         FhirContext contextR4 = FhirContext.forR4();
 
