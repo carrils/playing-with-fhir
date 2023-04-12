@@ -29,25 +29,6 @@ import org.hl7.fhir.r4.model.Patient;
 
 //logback output levels (asc precedence): TRACE, DEBUG, INFO, WARN, ERROR
 
-/*
-    ToDo:
-    Create example resources in hapi fhir for
-        - US Core Patient [-]
-        - US Core Condition [ ]
-        - US Core Encounter [ ]
-        - US Core Location [ ]
-        - US Core QuestionResponse [ ]
-        - US Core CarePlan [ ]
-        - Specimen Resource [ ]
-
-    Figure out which profile refers to which and double check you built the above correctly [ ]
-
-    Upload them to hapi fhir test server [ ]
-
-    Retrieve all with a patient?id=<whatever>$everything server interaction [ ]
- */
-
-
 public class Main {
     public static void main(String[] args) throws IOException {
         String serverBase = "http://hapi.fhir.org/baseR4"; // the server base url for your server
