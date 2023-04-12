@@ -8,6 +8,7 @@ import ca.uhn.fhir.rest.api.MethodOutcome;
 import ca.uhn.fhir.rest.client.api.IGenericClient;
 import ca.uhn.fhir.rest.client.api.IRestfulClientFactory;
 import ca.uhn.fhir.rest.client.api.ServerValidationModeEnum;
+import ca.uhn.fhir.rest.client.interceptor.CapturingInterceptor;
 import ca.uhn.fhir.rest.client.interceptor.LoggingInterceptor;
 import ca.uhn.fhir.util.BundleBuilder;
 
@@ -21,9 +22,10 @@ import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
 import org.hl7.fhir.r4.model.ContactPoint.ContactPointUse;
 
 import org.json.simple.JSONObject;
-
 import java.io.*;
 import java.util.*;
+import org.hl7.fhir.r4.model.Enumerations;
+import org.hl7.fhir.r4.model.Patient;
 
 //logback output levels (asc precedence): TRACE, DEBUG, INFO, WARN, ERROR
 
@@ -45,19 +47,6 @@ import java.util.*;
     Retrieve all with a patient?id=<whatever>$everything server interaction [ ]
  */
 
-import org.hl7.fhir.r4.model.Enumerations;
-import org.hl7.fhir.r4.model.Patient;
-
-// Java API stuff
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
 
 public class Main {
     public static void main(String[] args) throws IOException {
@@ -70,15 +59,12 @@ public class Main {
         clientFactory.setServerValidationMode(ServerValidationModeEnum.NEVER);
         clientFactory.setConnectTimeout(60 * 1000);
         clientFactory.setSocketTimeout(60 * 1000);
-        // create logging interceptor
-        LoggingInterceptor loggingInterceptor = new LoggingInterceptor();
-        loggingInterceptor.setLogRequestSummary(true);
-        loggingInterceptor.setLogRequestBody(true);
-        loggingInterceptor.setLogRequestHeaders(true);
+        // capturing interceptor
+        CapturingInterceptor capturer = new CapturingInterceptor();
         // create a generic client
         IGenericClient client = contextR4.newRestfulGenericClient(serverBase);
-        // register the logging interceptor
-        client.registerInterceptor(loggingInterceptor);
+        // register the capturing interceptor
+        client.registerInterceptor(capturer);
 
 
         // [PATIENT RESOURCE]
@@ -114,7 +100,7 @@ public class Main {
         }
 
 
-         // [UPLOAD]
+         // [UPLOAD (to the serverbase url)]
         System.out.println("Press Enter to send the patient to server: " + serverBase);
         System.in.read();
 
@@ -129,7 +115,6 @@ public class Main {
             IdType id = (IdType) outcome.getId();
             System.out.println("Resource is available at: " + id.getValue());
 
-
             // System.out.println("[OUTCOME]\n" + outcome.toString());
 
             // Retrieve patient from outcome
@@ -140,32 +125,7 @@ public class Main {
             System.out.println("An error occurred trying to upload:");
             e.printStackTrace();
         }
-        
-        // [UPLOAD]
-//        System.out.println("Press Enter to send the patient to server: " + serverBase);
-//        System.in.read();
-//
-//        try {
-//            // send resource up to the server - the result is stored in outcome hence the weird notation
-//            MethodOutcome outcome = client.create()
-//                    .resource(pat)
-//                    .prettyPrint()
-//                    .encodedJson()
-//                    .execute();
-//            // Retrieve id from outcome
-//            IdType id = (IdType) outcome.getId();
-//            System.out.println("Resource is available at: " + id.getValue());
-//
-//            // System.out.println("[OUTCOME]\n" + outcome.toString());
-//
-//            // Retrieve patient from outcome
-//            Patient receivedPatient = (Patient) outcome.getResource();
-//            System.out.println("This is what we sent up: \n" + jsonParser.encodeResourceToString(pat) + "\n");
-//            System.out.println("And this is what we received back: \n" + jsonParser.encodeResourceToString(receivedPatient));
-//        } catch (DataFormatException e) {
-//            System.out.println("An error occurred trying to upload:");
-//            e.printStackTrace();
-//        }
+
 
         //[SEARCH]
         //  Sam Spades identifier values:
@@ -177,11 +137,11 @@ public class Main {
                 .execute();
 
         try {
-            Writer outf = new FileWriter("sir-samuel-spade.json");
+            Writer outf = new FileWriter("sam-spade.json");
             outf.write(jsonParser.encodeResourceToString(samSpade));
             outf.close();
         } catch (Exception e) {
-            System.out.println("Well, now look what you've done. How are we going to explain this to corporate?\n");
+            System.out.println("Well, now look what you've done.\n");
             e.getStackTrace();
         }
         System.out.println("sir samuel spade:\n" + jsonParser.encodeResourceToString(samSpade));
